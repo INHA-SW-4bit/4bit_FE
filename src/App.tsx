@@ -23,7 +23,7 @@ function App() {
         <Route path="/home" element={<LectureListPage />} />
         <Route element={<Layout />}>
           <Route path="/:lectureId/qna" element={<QnAPage />} />
-          {/* <Route path="/:lectureId/attendance" element={<StudentAttendancePage />} /> */}
+          <Route path="/:lectureId/attendance" element={<StudentAttendancePage />} />
           <Route
             path="/:lectureId/attendance/professor"
             element={<AttendancePage />}
