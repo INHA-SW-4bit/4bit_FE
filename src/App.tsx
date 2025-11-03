@@ -17,6 +17,7 @@ function App() {
           /:lectureId/qna -> QnA 화면
         */}
         <Route path="/" element={<LoginPage />} />
+        <Route path="/home" element={<LectureListPage />} />
         <Route element={<Layout />}>
           <Route path="/:lectureId/qna" element={<QnAPage />} />
           <Route path="/:lectureId/attendance" element={<StudentAttendancePage />} />
@@ -26,5 +27,3 @@ function App() {
     </BrowserRouter>
   );
 }
-
-export default App
