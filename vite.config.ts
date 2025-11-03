@@ -6,10 +6,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineConfig({
   plugins: [
     react({
-      babel: {
-        plugins: ["@emotion"],
-      },
-    }),
-    tailwindcss(),
+      jsxImportSource: '@emotion/react',
+    })
   ],
-});
+})
