@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import watermark from "../assets/images/watermark_converted.png";
 import styled from "@emotion/styled";
 
@@ -123,20 +124,39 @@ export default function LoginPage() {
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
 
-  const onSubmit = (e: FormEvent) => {
+  const navigate = useNavigate();
+
+  const userData = {
+    loginId: id,
+    password: pw,
+  };
+
+  const fetchToken = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!id.trim()) {
-      alert("[사용자 아이디] 반드시 입력(선택)하셔야 합니다.");
-      return;
-    }
+    try {
+      const response = await fetch("http://localhost:8080/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(userData),
+      });
 
-    if (!pw.trim()) {
-      alert("[비밀번호] 반드시 입력(선택)하셔야 합니다.");
-      return;
-    }
+      if (!response.ok) {
+        throw new Error("토큰 요청 실패");
+      }
 
-    console.log("로그인 시도: ", { id, pw });
+      const data = await response.json();
+      const accessToken = data.accessToken;
+
+      if (accessToken) {
+        localStorage.setItem("accessToken", accessToken);
+        navigate("/home");
+      }
+    } catch (error) {
+      console.error("토큰 요청 실패:", error);
+    }
   };
 
   return (
@@ -150,7 +170,7 @@ export default function LoginPage() {
           <SubTitle>4bit</SubTitle>
         </TitleContainer>
 
-        <LoginForm onSubmit={onSubmit}>
+        <LoginForm onSubmit={fetchToken}>
           <div>
             <InputLabel>ID</InputLabel>
 
