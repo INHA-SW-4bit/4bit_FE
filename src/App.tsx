@@ -1,5 +1,7 @@
 import Layout from "./pages/Layout";
+import LoginPage from "./pages/LoginPage";
 import QnAPage from "./pages/QnAPage";
+import StudentAttendancePage from "./pages/StudentAttendancePage";
 
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
@@ -14,9 +16,10 @@ function App() {
           /:lectureId/attendance/result -> 강의 출석 결과
           /:lectureId/qna -> QnA 화면
         */}
+        <Route path="/" element={<LoginPage />} />
         <Route element={<Layout />}>
           <Route path="/:lectureId/qna" element={<QnAPage />} />
-          <Route path="/:lectureId/attendance" element={<QnAPage />} />
+          <Route path="/:lectureId/attendance" element={<StudentAttendancePage />} />
           <Route path="/:lectureId/attendance/result" element={<QnAPage />} />
         </Route>
       </Routes>
