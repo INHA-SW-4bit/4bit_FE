@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate, useParams } from "react-router-dom";
 import styled from "@emotion/styled";
 
 import home from "../assets/images/home.png";
@@ -19,6 +19,8 @@ import rightarrow from "../assets/images/rightarrow.png";
 const Layout = () => {
     const [isOpen, setISOpen] = useState(4);
     const [click, setClick] = useState("attendance");
+    const { lectureId } = useParams();
+    const navigate = useNavigate();
 
     const menuOpen = (menuNum: number) => {
         if(isOpen === menuNum) {
@@ -30,10 +32,12 @@ const Layout = () => {
     const attendanceClick = () => {
         if (click === "attendance") return;
         setClick("attendance");
+        navigate(`/${lectureId}/attendance`);
     }
     const qnaClick = () => {
         if (click === "qna") return;
         setClick("qna");
+        navigate(`/${lectureId}/qna`);
     }
 
     return (
@@ -109,7 +113,9 @@ const Layout = () => {
                                     { isOpen === 4 ? <TriangleUp /> : <TriangleDown /> }
                                 </div>
                                 <SubList isOpen={isOpen} menuNum={4}>
-                                    <ActiveSubItem click={click} menuName="attendance" onClick={attendanceClick}>출석</ActiveSubItem>
+                                    <ActiveSubItem click={click} menuName="attendance" onClick={attendanceClick}>
+                                        출석
+                                    </ActiveSubItem>
                                     <ActiveSubItem click={click} menuName="qna" onClick={qnaClick}>실시간 Q&A</ActiveSubItem>
                                 </SubList>
                             </SubMenu>
