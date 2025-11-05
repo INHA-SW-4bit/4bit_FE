@@ -1,5 +1,6 @@
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import fetchWithAuth from "../utils/fetchWithAuth";
 import profile from "../assets/images/professor_profile.png";
 import settingImg from "../assets/images/setting.png";
@@ -14,6 +15,7 @@ export default function LectureListPage() {
   const [lectures, setLectures] = useState<Lecture[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const fetchToken = async () => {
     try {
@@ -45,6 +47,10 @@ export default function LectureListPage() {
     fetchToken();
   }, []);
 
+  const goAttendance = (id: number) => {
+    navigate(`/${id}/attendance/professor`);
+  };
+
   return (
     <PageWrapper>
       <InnerContainer>
@@ -63,7 +69,15 @@ export default function LectureListPage() {
           {!loading &&
             !error &&
             lectures.map((lecture) => (
-              <Card key={lecture.lectureId}>
+              <Card
+                key={lecture.lectureId}
+                role="button"
+                tabIndex={0}
+                onClick={() => goAttendance(lecture.lectureId)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") goAttendance(lecture.lectureId);
+                }}
+              >
                 {/* `/${lecture.lectureId}/qna` */}
                 <AvatarImg
                   src={profile}
@@ -229,11 +243,7 @@ const LectureTitle = styled.h2`
   align-items: center;
   gap: 8px;
 `;
-const NewBadge = styled.span`
-  color: red;
-  font-size: 13px;
-  font-weight: 700;
-`;
+
 const ProfessorName = styled.p`
   font-size: 14px;
   color: #999;
