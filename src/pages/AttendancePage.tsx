@@ -91,7 +91,7 @@ export default function AttendancePage() {
       console.error(err);
     } finally {
       setTimeLeft(null);
-      navigate("/result", { state: { code } });
+      navigate(`/${lectureId}/attendance/result`, { state: { code } });
     }
   };
 
@@ -124,7 +124,7 @@ export default function AttendancePage() {
           console.error(err);
         } finally {
           setTimeLeft(null);
-          navigate("/result", { state: { code } });
+          navigate(`/${lectureId}/attendance/result`, { state: { code } });
         }
       })();
     }
@@ -202,10 +202,9 @@ const PageContainer = styled.div`
   background-color: #f9fafb;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 2rem 1.5rem 0 1.5rem;
 `;
 
 const Title = styled.h1`
@@ -219,13 +218,14 @@ const Title = styled.h1`
 const ContentBox = styled.div`
   background-color: white;
   width: 100%;
-  max-width: 48rem;
+  max-width: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 2rem;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   border-radius: 0.375rem;
+  margin-left: 0;
 `;
 
 const CodeInfoContainer = styled.div`
