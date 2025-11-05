@@ -219,12 +219,22 @@ type SeatingStatusResponse = {
   attendanceData: ApiAttendanceItem[];
 };
 
+//출석자 dto
 type RowShape = {
   major: string;
   grade: number;
   studentNo: string;
   name: string;
   engName: string;
+};
+
+//결석자 dto
+type AbsenteeDto = {
+  department: string;
+  grade: number;
+  studentNumber: string;
+  name: string;
+  englishName?: string;
 };
 
 //"12223757"->"1222****"
@@ -290,12 +300,30 @@ export default function ResultPage() {
 
         setAttendRows(present);
 
-        //결석자: 현재 스펙상 "좌석만"으로는 학생 식별 불가 -> 빈 배열 유지
-        //전체 수강생 명단 API가 추가되면 거기서 diff 계산해서 채우면 됨
-        setAbsentRows([]);
+        const absRes = await fetchWithAuth(
+          `/api/lectures/${lectureId}/attendance/absentees`,
+          { method: "GET", headers: { "Content-Type": "application/json" } }
+        );
+
+        if (!absRes.ok) throw new Error(`Absentees HTTP ${absRes.status}`);
+
+        const absentees: AbsenteeDto[] = await absRes.json();
+
+        const absentRowsMapped: RowShape[] = (absentees || []).map((a) => ({
+          major: a.department,
+          grade: a.grade,
+          studentNo: maskStudentId(a.studentNumber),
+          name: a.name,
+          engName: a.englishName ?? "",
+        }));
+
+        setAbsentRows(absentRowsMapped);
       } catch (err) {
         console.error(err);
         setErrorMsg("출석 현황을 불러오지 못했습니다.");
+        //둘 중 하나라도 실패하면 빈 배열 유지
+        setAttendRows((prev) => prev || []);
+        setAbsentRows((prev) => prev || []);
       } finally {
         setLoading(false);
       }
