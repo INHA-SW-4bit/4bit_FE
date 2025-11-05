@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
+import { useParams } from "react-router-dom";
+import fetchWithAuth from "../utils/FetchWithAuth";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -195,97 +197,117 @@ const NavButton = styled(BasePaginationButton)<{ isDisabled: boolean }>`
   }
 `;
 
-export default function ResultPage() {
-  const AttendanceData = [
-    {
-      major: "컴퓨터공학과",
-      grade: 4,
-      studentNo: "1222****",
-      name: "손하은",
-      engName: "Son Ha Eun",
-    },
-    {
-      major: "컴퓨터공학과",
-      grade: 2,
-      studentNo: "1224****",
-      name: "민채원",
-      engName: "Min Chae Won",
-    },
-    {
-      major: "컴퓨터공학과",
-      grade: 1,
-      studentNo: "1225****",
-      name: "개똥이",
-      engName: "Gae Ddong e",
-    },
-    {
-      major: "컴퓨터공학과",
-      grade: 3,
-      studentNo: "1226****",
-      name: "밀플랜비",
-      engName: "Meal Plan B",
-    },
-    {
-      major: "컴퓨터공학과",
-      grade: 4,
-      studentNo: "1227****",
-      name: "자고싶다",
-      engName: "Ja Go Sip Da",
-    },
-    {
-      major: "컴퓨터공학과",
-      grade: 1,
-      studentNo: "1228****",
-      name: "홍길동",
-      engName: "Hong Gil Dong",
-    },
-  ];
+//타입&유틸 (표시형 변환만)
+type Seat = { row: number; col: number };
 
-  const absenceData = [
-    {
-      major: "컴퓨터공학과",
-      grade: 3,
-      studentNo: "1222****",
-      name: "김영신",
-      engName: "Kim Yeong Sin",
-    },
-    {
-      major: "컴퓨터공학과",
-      grade: 2,
-      studentNo: "1222****",
-      name: "오민기",
-      engName: "Oh Min Gi",
-    },
-    {
-      major: "컴퓨터공학과",
-      grade: 2,
-      studentNo: "1224****",
-      name: "땅울림",
-      engName: "Landvibe",
-    },
-    {
-      major: "컴퓨터공학과",
-      grade: 2,
-      studentNo: "1222****",
-      name: "ㅇㅇㅇ",
-      engName: "OOO",
-    },
-  ];
+type SeatStudentDetailDto = {
+  id?: string;
+  name: string;
+  grade: string;
+  studentId: string;
+  department: string;
+  profileImgUrl?: string;
+};
+
+type ApiAttendanceItem = {
+  seat: Seat;
+  student?: SeatStudentDetailDto;
+};
+
+type SeatingStatusResponse = {
+  layout: ("seat" | "aisle" | "X")[][];
+  attendanceData: ApiAttendanceItem[];
+};
+
+type RowShape = {
+  major: string;
+  grade: number;
+  studentNo: string;
+  name: string;
+  engName: string;
+};
+
+//"12223757"->"1222****"
+const maskStudentId = (id: string) =>
+  id && id.length >= 4 ? `${id.slice(0, 4)}****` : id;
+
+//"4학년" -> 4
+const toGradeNumber = (g: string) => {
+  const n = parseInt(g.replace(/\D/g, ""), 10);
+  return Number.isNaN(n) ? 0 : n;
+};
+
+export default function ResultPage() {
+  const { lectureId } = useParams<{ lectureId: string }>();
 
   const [activeTab, setActiveTab] = useState<"attend" | "absent">("absent");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
 
-  const data = activeTab === "attend" ? AttendanceData : absenceData;
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const startIdx = (currentPage - 1) * itemsPerPage;
-  const endIdx = startIdx + itemsPerPage;
-  const currentData = data.slice(startIdx, endIdx);
+  //서버에서 받은 출석/결석 데이터(표시형)
+  const [attendRows, setAttendRows] = useState<RowShape[]>([]);
+  const [absentRows, setAbsentRows] = useState<RowShape[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  //탭 변경
   const handleTabChange = (tab: "attend" | "absent") => {
     setActiveTab(tab);
     setCurrentPage(1);
   };
+
+  //api 연동
+  useEffect(() => {
+    if (!lectureId) return;
+
+    (async () => {
+      try {
+        setLoading(true);
+        setErrorMsg(null);
+
+        const res = await fetchWithAuth(
+          `/api/lectures/${lectureId}/seating-status`,
+          { method: "GET", headers: { "Content-Type": "application/json" } }
+        );
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data: SeatingStatusResponse = await res.json();
+
+        //출석자: attendanceData 중 student가 존재하는 항목만 표시형으로 변환
+        const present: RowShape[] = (data.attendanceData || [])
+          .filter((a) => a.student) //교수면 student 있음, 학생이면 seat만 올 수 있도록
+          .map((a) => {
+            const s = a.student!;
+            return {
+              major: s.department || "",
+              grade: toGradeNumber(s.grade || ""),
+              studentNo: maskStudentId(s.studentId || ""),
+              name: s.name || "",
+              engName: "", //영문명은 백엔드 스펙에 없으므로 일단 비워둠
+            };
+          });
+
+        setAttendRows(present);
+
+        //결석자: 현재 스펙상 "좌석만"으로는 학생 식별 불가 -> 빈 배열 유지
+        //전체 수강생 명단 API가 추가되면 거기서 diff 계산해서 채우면 됨
+        setAbsentRows([]);
+      } catch (err) {
+        console.error(err);
+        setErrorMsg("출석 현황을 불러오지 못했습니다.");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [lectureId]);
+
+  //표에 넣을 데이터
+  const data = activeTab === "attend" ? attendRows : absentRows;
+  const totalPages = Math.max(1, Math.ceil(data.length / itemsPerPage));
+  const startIdx = (currentPage - 1) * itemsPerPage;
+  const endIdx = startIdx + itemsPerPage;
+  const currentData = data.slice(startIdx, endIdx);
 
   return (
     <PageContainer>
@@ -296,13 +318,13 @@ export default function ResultPage() {
           onClick={() => handleTabChange("attend")}
           isActive={activeTab === "attend"}
         >
-          출석자 ({AttendanceData.length})
+          출석자 ({attendRows.length})
         </TabButton>
         <TabButton
           onClick={() => handleTabChange("absent")}
           isActive={activeTab === "absent"}
         >
-          결석자 ({absenceData.length})
+          결석자 ({absentRows.length})
         </TabButton>
       </TabContainer>
 
@@ -321,14 +343,21 @@ export default function ResultPage() {
           </TableHeader>
 
           <tbody>
-            {currentData.length > 0 ? (
+            {loading ? (
+              <TableRow>
+                <NoDataCell colSpan={5}>불러오는 중...</NoDataCell>
+              </TableRow>
+            ) : errorMsg ? (
+              <TableRow>
+                <NoDataCell colSpan={5}>{errorMsg}</NoDataCell>
+              </TableRow>
+            ) : currentData.length > 0 ? (
               currentData.map((row, idx) => (
                 <TableRow key={idx}>
                   <TableDataCell>{row.major}</TableDataCell>
                   <TableDataCell>{row.grade}</TableDataCell>
-                  <StudentNoCell>{row.studentNo}</StudentNoCell>{" "}
+                  <StudentNoCell>{row.studentNo}</StudentNoCell>
                   <NameCell>
-                    {" "}
                     <span>{row.name}</span>
                   </NameCell>
                   <TableDataCell>{row.engName}</TableDataCell>
