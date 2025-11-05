@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useInView } from "react-intersection-observer";
 import styled from "@emotion/styled";
+import { useAuth } from "../../contexts/AuthContext";
 import formatTime from "../../utils/foramtTime";
 import { displayTime, displayName } from "../../utils/chatutils";
 import type { Message } from "../../types/message";
@@ -12,9 +13,12 @@ interface ChatBodyProps {
 }
 
 const ChatBody = ({ hasMore, messages, fetchPrevMessages }: ChatBodyProps) => {
+  const { role } = useAuth();
+
   const endRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const prevScrollHeightRef = useRef<number>(0);
+
   const [topRef, inView] = useInView();
 
   useLayoutEffect(() => {
@@ -43,7 +47,7 @@ const ChatBody = ({ hasMore, messages, fetchPrevMessages }: ChatBodyProps) => {
       {messages.map((message, idx) => {
         return (
           <MessageContainer key={message.messageId} isMe={message.mine}>
-            <Name isVisible={displayName(idx, messages)}>
+            <Name isVisible={displayName(idx, messages, role)}>
               {message.senderName}
             </Name>
             <MessageBody isMe={message.mine}>
@@ -88,13 +92,15 @@ const MessageBody = styled.div<{ isMe: boolean }>`
   flex-direction: ${(props) => (props.isMe ? "row-reverse" : "row")};
   align-items: end;
   gap: 0.2rem;
+  width: 100%;
 `;
 const SpeechBubble = styled.div<{ isMe: boolean }>`
   max-width: 80%;
-  padding: 0.6rem 0.7rem;
+  padding: 0.6rem 0.9rem;
   background-color: ${(props) => (props.isMe ? "#325694" : "#EFEFEF")};
-  border-radius: 1rem;
+  border-radius: 1.2rem;
   font-size: 0.8rem;
+  line-height: 1.5;
   color: ${(props) => (props.isMe ? "#FFFFFF" : "#333")};
   word-break: break-all;
 `;
