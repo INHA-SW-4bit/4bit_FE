@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import styled from "@emotion/styled";
 import { css } from "@emotion/react";
 import { useParams } from "react-router-dom";
-import fetchWithAuth from "../utils/FetchWithAuth";
+import fetchWithAuth from "../utils/fetchWithAuth";
 
 const PageContainer = styled.div`
   min-height: 100vh;
