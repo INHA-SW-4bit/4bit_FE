@@ -1,8 +1,8 @@
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
-import fetchWithAuth from "../utils/FetchWithAuth";
 import profile from "../assets/images/professor_profile.png";
 import settingImg from "../assets/images/setting.png";
+import fetchWithAuth from "../utils/fetchWithAuth";
 
 type Lecture = {
   lectureId: number;

@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import watermark from "../assets/images/watermark_converted.png";
 import styled from "@emotion/styled";
+import { useAuth } from "../contexts/AuthContext";
+import watermark from "../assets/images/watermark_converted.png";
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -121,6 +122,7 @@ const LoginButton = styled.button`
 `;
 
 export default function LoginPage() {
+  const { login } = useAuth();
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
 
@@ -148,10 +150,9 @@ export default function LoginPage() {
       }
 
       const data = await response.json();
-      const accessToken = data.accessToken;
 
-      if (accessToken) {
-        localStorage.setItem("accessToken", accessToken);
+      if (data.accessToken) {
+        login(data.role, data.accessToken);
         navigate("/home");
       }
     } catch (error) {
