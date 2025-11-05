@@ -95,7 +95,7 @@ const MessageBody = styled.div<{ isMe: boolean }>`
   width: 100%;
 `;
 const SpeechBubble = styled.div<{ isMe: boolean }>`
-  max-width: 80%;
+  max-width: 60%;
   padding: 0.6rem 0.9rem;
   background-color: ${(props) => (props.isMe ? "#325694" : "#EFEFEF")};
   border-radius: 1.2rem;
