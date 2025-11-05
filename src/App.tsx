@@ -4,7 +4,7 @@ import Layout from "./pages/Layout";
 import LoginPage from "./pages/LoginPage";
 import LectureListPage from "./pages/LectureListPage";
 import QnAPage from "./pages/QnAPage";
-import AttendancePage from "./pages/AttendancePage";
+import AttendanceRolePage from "./pages/AttendanceRolePage";
 import ResultPage from "./pages/ResultPage";
 
 // import StudentAttendancePage from "./pages/StudentAttendancePage";
@@ -27,8 +27,8 @@ function App() {
             <Route path="/:lectureId/qna" element={<QnAPage />} />
             {/* <Route path="/:lectureId/attendance" element={<StudentAttendancePage />} /> */}
             <Route
-              path="/:lectureId/attendance/professor"
-              element={<AttendancePage />}
+              path="/:lectureId/attendance"
+              element={<AttendanceRolePage />}
             />
             <Route
               path="/:lectureId/attendance/result"
