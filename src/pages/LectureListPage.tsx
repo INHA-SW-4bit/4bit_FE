@@ -1,6 +1,6 @@
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
-import fetchWithAuth from "../utils/FetchWithAuth";
+import fetchWithAuth from "../utils/fetchWithAuth";
 
 type Lecture = {
   lectureId: number;
