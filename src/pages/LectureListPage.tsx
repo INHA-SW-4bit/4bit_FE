@@ -1,7 +1,7 @@
 import styled from "@emotion/styled";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import fetchWithAuth from "../utils/FetchWithAuth";
+import fetchWithAuth from "../utils/fetchWithAuth";
 import profile from "../assets/images/professor_profile.png";
 import settingImg from "../assets/images/setting.png";
 
