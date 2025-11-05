@@ -1,163 +1,198 @@
+import {
+  useEffect,
+  useState,
+  useRef,
+  type FormEvent,
+  type ChangeEvent,
+} from "react";
+import { useParams } from "react-router-dom";
 import styled from "@emotion/styled";
 
-import send from "../../assets/images/send.png";
+import ChatBody from "./ChatBody";
+import ChatFooter from "./ChatFooter";
+import fetchWithAuth from "../../utils/fetchWithAuth";
+import type { Message, PrevMessages } from "../../types/message";
+
+const Chat = () => {
+  const { lectureId } = useParams();
+
+  const [connected, setConnected] = useState<boolean>(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [hasMore, setHasMore] = useState<boolean>(true);
+  const [input, setInput] = useState<string>("");
+
+  const webSocketRef = useRef<WebSocket | null>(null);
+  const reconnectAttemptsRef = useRef<number>(0);
+  const reconnectTimerRef = useRef<number | null>(null);
+
+  const MAX_RECONNECT_ATTEMPTS = 5;
+  const MAX_RECONNECT_INTERVAL = 30000;
+
+  const token = localStorage.getItem("accessToken");
+
+  // 채팅 내역 불러오기
+  const fetchPrevMessages = async (value: string) => {
+    try {
+      const response = await fetchWithAuth(
+        value === ""
+          ? `/api/lectures/${lectureId}/chat/messages`
+          : `/api/lectures/${lectureId}/chat/messages?cursor=${value}&size=20`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: PrevMessages = await response.json();
+
+      if (data.messages.length < 20) {
+        setHasMore(false);
+      }
+
+      if (value === "") {
+        setMessages(data.messages);
+      } else {
+        setMessages((prev) => [...data.messages, ...prev]);
+      }
+    } catch (error) {
+      console.error("Get Failed: ", error);
+      throw error;
+    }
+  };
+
+  useEffect(() => {
+    fetchPrevMessages("");
+  }, []);
+
+  // 소켓 연결
+  useEffect(() => {
+    const connect = () => {
+      // 중복 연결 시도 방지
+      if (
+        webSocketRef.current &&
+        webSocketRef.current.readyState === WebSocket.OPEN
+      ) {
+        return;
+      }
+
+      // 토큰 / 강의 id 없을 시 연결 시도 방지
+      if (!token || !lectureId) return;
+
+      const webSocket = new WebSocket(
+        `ws://localhost:8080/ws/chat?token=${encodeURIComponent(
+          token
+        )}&lectureId=${lectureId}`
+      );
+      webSocketRef.current = webSocket;
+
+      webSocket.onopen = () => {
+        setConnected(true);
+
+        reconnectAttemptsRef.current = 0; // 재연결 시도 횟수 초기화
+        if (reconnectTimerRef.current) {
+          clearTimeout(reconnectTimerRef.current);
+        }
+        reconnectTimerRef.current = null;
+      };
+
+      webSocket.onmessage = (event: MessageEvent) => {
+        try {
+          const data = JSON.parse(event.data) as Message;
+          setMessages((prev) => [...prev, data]);
+        } catch (error) {
+          console.warn("Received non-JSON message: ", event.data, error);
+        }
+      };
+
+      webSocket.onerror = (error: Event) => {
+        console.error("WebSocket Error: ", error);
+      };
+
+      webSocket.onclose = (event: CloseEvent) => {
+        setConnected(false);
+
+        if (event.code !== 1000) {
+          console.warn("WebSocket closed abnormally.");
+
+          if (reconnectAttemptsRef.current < MAX_RECONNECT_ATTEMPTS) {
+            reconnectAttemptsRef.current += 1;
+
+            const delay = Math.min(
+              1000 * 2 ** reconnectAttemptsRef.current,
+              MAX_RECONNECT_INTERVAL
+            );
+
+            reconnectTimerRef.current = setTimeout(() => {
+              connect();
+            }, delay);
+          } else {
+            console.error("Max reconnection attempts reached.");
+          }
+        }
+      };
+    };
+    connect();
+
+    return () => {
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+
+      if (webSocketRef.current) {
+        webSocketRef.current.close(1000);
+        webSocketRef.current = null;
+      }
+    };
+  }, [lectureId, token]);
+
+  const inputChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
+    setInput(event.target.value);
+  };
+
+  const sendMessage = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (
+      !input.trim() ||
+      !webSocketRef.current ||
+      webSocketRef.current.readyState !== WebSocket.OPEN
+    )
+      return;
+
+    webSocketRef.current.send(JSON.stringify({ lectureId, content: input }));
+    setInput("");
+  };
+
+  return (
+    <Wrapper>
+      <ChatBody
+        hasMore={hasMore}
+        messages={messages}
+        fetchPrevMessages={fetchPrevMessages}
+      />
+      <ChatFooter
+        input={input}
+        connected={connected}
+        onChange={inputChangeHandler}
+        onSubmit={sendMessage}
+      />
+    </Wrapper>
+  );
+};
+
+export default Chat;
 
 const Wrapper = styled.section`
   position: relative;
   width: 100%;
   height: 70dvh;
   padding: 1.5rem;
-  background-color: #FFFFFF;
-`
-const ChatBody = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  height: 85%;
-  overflow-y: scroll;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-`
-const Message = styled.article<{ isMe: boolean }>`
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  align-items: ${(props) => props.isMe ? "end" : "start"};
-`
-// const Name = styled.p<{ isMe: boolean }>`
-//   display: ${(props) => props.isMe ? "none" : "inherit"};
-//   font-size: 0.9rem;
-// `
-const Name = styled.p` 
-  font-size: 0.8rem;
-  color: #333;
-`
-const MessageBody = styled.div<{ isMe: boolean }>`
-  display: flex;
-  flex-direction: ${(props) => props.isMe ? "row-reverse" : "row"};
-  align-items: end;
-  gap: 0.2rem;
-`
-const SpeechBubble = styled.div<{ isMe: boolean }>`
-  max-width: 80%;
-  padding: 0.6rem 0.7rem;
-  background-color: ${(props) => props.isMe ? "#325694" : "#EFEFEF"};
-  border-radius: 1rem;
-  font-size: 0.8rem;
-  color: ${(props) => props.isMe ? "#FFFFFF" : "#333"};
-  word-break: break-all;
-`
-const SendTime = styled.span`
-  font-size: 0.5rem;
-  color: #333;
-`
-
-
-const ChatFooter = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.4rem;
-  position: absolute;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  right: 1.5rem;
-`
-const ChatInput = styled.input`
-  width: 60%;
-  height: 3rem;
-  padding: 0.8rem;
-  border: 1px solid #325694;
-  border-radius: 0.9rem;
-
-  &:focus {
-    outline: none;
-  }
-  &::placeholder {
-    color: #a5a5a5;
-  }
-`
-const Button = styled.button`
-  width: 3rem;
-  height: 3rem;
-  background-color: #325694;
-  border: none;
-  border-radius: 0.9rem;
-`
-
-const Chat = () => {
-  return (
-    <Wrapper>
-      <ChatBody>
-        <Message isMe={false}>
-          <Name>익명1</Name>
-          <MessageBody isMe={false}>
-            <SpeechBubble isMe={false}>으아아</SpeechBubble>
-            <SendTime>오후 3:17</SendTime>
-          </MessageBody>
-        </Message>
-
-        <Message isMe={false}>
-          <Name>익명1</Name>
-          <MessageBody isMe={false}>
-            <SpeechBubble isMe={false}>으아아</SpeechBubble>
-            <SendTime>오후 3:17</SendTime>
-          </MessageBody>
-        </Message>
-
-        <Message isMe={true}>
-          <Name>익명2</Name>
-          <MessageBody isMe={true}>
-            <SpeechBubble isMe={true}>으아아</SpeechBubble>
-            <SendTime>오후 3:17</SendTime>
-          </MessageBody>
-        </Message>
-        <Message isMe={true}>
-          <Name>익명2</Name>
-          <MessageBody isMe={true}>
-            <SpeechBubble isMe={true}>으아아</SpeechBubble>
-            <SendTime>오후 3:17</SendTime>
-          </MessageBody>
-        </Message>
-        <Message isMe={true}>
-          <Name>익명2</Name>
-          <MessageBody isMe={true}>
-            <SpeechBubble isMe={true}>으아아</SpeechBubble>
-            <SendTime>오후 3:17</SendTime>
-          </MessageBody>
-        </Message>
-        <Message isMe={true}>
-          <Name>익명2</Name>
-          <MessageBody isMe={true}>
-            <SpeechBubble isMe={true}>으아아</SpeechBubble>
-            <SendTime>오후 3:17</SendTime>
-          </MessageBody>
-        </Message>
-        <Message isMe={true}>
-          <Name>익명2</Name>
-          <MessageBody isMe={true}>
-            <SpeechBubble isMe={true}>으아아</SpeechBubble>
-            <SendTime>오후 3:17</SendTime>
-          </MessageBody>
-        </Message>
-        <Message isMe={true}>
-          <Name>익명2</Name>
-          <MessageBody isMe={true}>
-            <SpeechBubble isMe={true}>으아아</SpeechBubble>
-            <SendTime>오후 3:17</SendTime>
-          </MessageBody>
-        </Message>
-      </ChatBody>
-
-      <ChatFooter>
-        <ChatInput type="text" placeholder="메세지 입력" />
-        <Button type="button">
-          <img src={send} style={{ width: "2rem", height: "2rem" }} />
-        </Button>
-      </ChatFooter>
-    </Wrapper>
-  );
-};
-
-export default Chat;
+  background-color: #ffffff;
+`;
