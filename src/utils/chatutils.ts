@@ -1,5 +1,6 @@
 import formatTime from "./foramtTime";
 import type { Message } from "../types/message";
+import type { Role } from "../contexts/AuthContext";
 
 export const displayTime = (curIdx: number, messages: Message[]): boolean => {
   const curSender = messages[curIdx].senderLoginId;
@@ -18,7 +19,11 @@ export const displayTime = (curIdx: number, messages: Message[]): boolean => {
   return display;
 }
 
-export const displayName = (curIdx: number, messages: Message[]): boolean => {
+export const displayName = (curIdx: number, messages: Message[], role: Role | null): boolean => {
+  if (role === "PROFESSOR" && messages[curIdx].mine) {
+    return false;
+  }
+
   const curSender = messages[curIdx].senderLoginId;
   const curSendAt = formatTime(messages[curIdx].createdAt);
   let display = true;
