@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "@emotion/styled";
-import fetchWithAuth from "../utils/fetchWithAuth";
+import fetchWithAuth from "../utils/FetchWithAuth";
 
 export default function AttendancePage() {
   const { lectureId } = useParams<{ lectureId: string }>();
