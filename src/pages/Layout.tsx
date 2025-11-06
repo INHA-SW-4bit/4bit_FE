@@ -324,6 +324,11 @@ const Main = styled.main`
   padding: 0 2.5rem;
   width: 100%;
   min-width: 0;
+  overflow-y: scroll;
+
+  ::-webkit-scrollbar {
+    display: none;
+  }
 `;
 const MainHeader = styled.header`
   display: flex;
