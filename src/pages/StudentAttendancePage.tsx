@@ -5,11 +5,15 @@ import { useAttendanceData } from "../hooks/useAttendanceData";
 import fetchWithAuth from "../utils/fetchWithAuth";
 import WifiStatus from "../components/studentAttendancePage/WifiStatus";
 import SeatLayout from "../components/common/SeatLayout";
+import type { SessionStatus } from "../types/session";
 
 const StudentAttendancePage = () => {
   const { lectureId } = useParams();
   const { layout, attendanceData, isLoading } = useAttendanceData();
   const [connected, setConnected] = useState<boolean>(false);
+  const [sessionStatus, setSessionStatus] = useState<SessionStatus | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchWifiStatus = async () => {
@@ -39,20 +43,56 @@ const StudentAttendancePage = () => {
   }, [lectureId]);
 
   useEffect(() => {
-    console.log("layout", layout);
-  }, [layout]);
-  useEffect(() => {
-    console.log("attendanceData", attendanceData);
-  }, [attendanceData]);
+    const fetchSessionStatus = async () => {
+      try {
+        const response = await fetchWithAuth(
+          `/api/lectures/${lectureId}/attendance/session/status`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data: SessionStatus = await response.json();
+        setSessionStatus(data);
+        console.log("세션", data);
+      } catch (error) {
+        console.error("Get Failed: ", error);
+        throw error;
+      }
+    };
+    fetchSessionStatus();
+  }, [lectureId]);
 
   if (isLoading) return <></>;
+  if (sessionStatus === null || sessionStatus.status === "CLOSED")
+    return (
+      <div style={{ marginTop: "1rem", color: "#333" }}>
+        출석 기간이 아닙니다.
+      </div>
+    );
+  // if (success) {
+  //   return (
+  //     <div style={{ marginTop: "1rem", color: "#333" }}>
+  //       출석이 완료되었습니다.
+  //     </div>
+  //   );
+  // }
 
   return (
     <ContentWrap>
       <Header>출석</Header>
       <WifiStatus connected={connected} />
       <SeatLayout
+        connected={connected}
         seatingStatus={{ layout: layout, attendanceData: attendanceData }}
+        sessionStatus={sessionStatus}
       />
     </ContentWrap>
   );

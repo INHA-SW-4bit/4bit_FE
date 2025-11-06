@@ -6,20 +6,20 @@ import fetchWithAuth from "../../utils/fetchWithAuth";
 import type { ModalContentProps } from "../../types/seatModal";
 
 const StudentModalContent = ({ info, onClose }: ModalContentProps) => {
-  const { lecutreId } = useParams();
+  const { lectureId } = useParams();
   const [code, setCode] = useState<string>("");
   const { timeLeft, isActive } = useCountdown(info.endTime ?? "00:00");
 
   const attendanceData = {
     rowNumber: info.row,
     colNumber: info.col,
-    attendanceCod: code,
+    attendanceCode: code,
   };
 
   const fetchCodeSubmit = async () => {
     try {
       const response = await fetchWithAuth(
-        `/api/lectures/${lecutreId}/attendance/check`,
+        `/api/lectures/${lectureId}/attendance/check`,
         {
           method: "POST",
           headers: {
@@ -30,6 +30,7 @@ const StudentModalContent = ({ info, onClose }: ModalContentProps) => {
       );
 
       if (!response.ok) {
+        console.log(attendanceData);
         throw new Error("출석 요청 실패");
       }
 
@@ -46,7 +47,7 @@ const StudentModalContent = ({ info, onClose }: ModalContentProps) => {
     if (!code.trim()) return;
 
     const codeNum = Number(code.trim());
-    console.log(codeNum);
+    console.log("Submitting code:", codeNum);
 
     fetchCodeSubmit();
     setCode("");
