@@ -15,11 +15,13 @@ import left_menu5 from "../assets/images/left_menu5.png";
 import left_menu6 from "../assets/images/left_menu6.png";
 import courseHome from "../assets/images/courseHome.png";
 import rightarrow from "../assets/images/rightarrow.png";
+import { useAuth } from "../contexts/AuthContext";
 
 const Layout = () => {
   const [isOpen, setISOpen] = useState(4);
   const [click, setClick] = useState("attendance");
   const { lectureId } = useParams();
+  const { role } = useAuth();
   const navigate = useNavigate();
 
   const menuOpen = (menuNum: number) => {
@@ -49,7 +51,7 @@ const Layout = () => {
         </HeaderLeft>
         <HeaderRight>
           <Profile>
-            <p>학생</p>
+            <p>{role === "PROFESSOR" ? "교수" : "학생"}</p>
             <ProfileImg src={profileImg} />
           </Profile>
           <Img src={top_menu1} />
