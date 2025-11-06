@@ -30,12 +30,8 @@ const StudentModalContent = ({ info, onClose }: ModalContentProps) => {
       );
 
       if (!response.ok) {
-        console.log(attendanceData);
         throw new Error("출석 요청 실패");
       }
-
-      const data = await response.json();
-      console.log("응답값", data);
     } catch (error) {
       console.error("출석 요청 실패:", error);
     }
@@ -45,9 +41,6 @@ const StudentModalContent = ({ info, onClose }: ModalContentProps) => {
     event.preventDefault();
 
     if (!code.trim()) return;
-
-    const codeNum = Number(code.trim());
-    console.log("Submitting code:", codeNum);
 
     fetchCodeSubmit();
     setCode("");

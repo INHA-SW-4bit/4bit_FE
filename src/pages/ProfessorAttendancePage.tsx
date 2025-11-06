@@ -84,7 +84,6 @@ export default function ProfessorAttendancePage() {
       }
 
       const data = await response.json();
-      console.log("출석 종료 응답: ", data); //{lectureId,status,endTime}
 
       alert(`출석 종료되었습니다 (상태 ${data.status})`);
     } catch (err) {
