@@ -48,7 +48,7 @@ export default function LectureListPage() {
   }, []);
 
   const goAttendance = (id: number) => {
-    navigate(`/${id}/attendance/professor`);
+    navigate(`/${id}/attendance`);
   };
 
   return (
