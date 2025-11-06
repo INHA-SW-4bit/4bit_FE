@@ -12,10 +12,11 @@ import StudentModalContent from "./StudentModalContent";
 import type { SeatingStatus, Student } from "../../types/seat";
 import type { SelectedSeatInfo } from "../../types/seatModal";
 import type { SessionStatus } from "../../types/session";
+
 interface SeatLayoutProps {
-  connected: boolean;
+  connected?: boolean;
   seatingStatus: SeatingStatus;
-  sessionStatus: SessionStatus;
+  sessionStatus?: SessionStatus;
 }
 
 const SeatLayout = ({
@@ -82,12 +83,15 @@ const SeatLayout = ({
                           student: student,
                           seatNumber: curSeatNum,
                         });
-                    } else if (role === "STUDENT" && connected && !isActive) {
+                    } else if (
+                      role === "STUDENT" /*&& connected*/ &&
+                      !isActive
+                    ) {
                       clickHandler = () =>
                         openModal({
                           row: rowIdx,
                           col: seatIdx,
-                          endTime: sessionStatus.endTime,
+                          endTime: sessionStatus?.endTime,
                           seatNumber: curSeatNum,
                         });
                     }
