@@ -3,12 +3,12 @@ interface Seat {
   col: number;
 }
 
-interface Student {
+export interface Student {
   name: string;
   studentId: string;
-  department: string;
   grade: number;
   profileImageUrl: string;
+  department: string;
 }
 
 export interface AttendanceData {
