@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import styled from "@emotion/styled";
 import fetchWithAuth from "../utils/fetchWithAuth";
 
-export default function AttendancePage() {
+export default function ProfessorAttendancePage() {
   const { lectureId } = useParams<{ lectureId: string }>();
   const [minute, setMinute] = useState("0");
   const [seconds, setSeconds] = useState("0");
