@@ -1,12 +1,14 @@
-import styled from "@emotion/styled";
-import type { ModalContentProps } from "../../types/seatModal";
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import fetchWithAuth from "../../utils/fetchWithAuth";
 import { useParams } from "react-router-dom";
+import styled from "@emotion/styled";
+import { useCountdown } from "../../hooks/useCountdown";
+import fetchWithAuth from "../../utils/fetchWithAuth";
+import type { ModalContentProps } from "../../types/seatModal";
 
 const StudentModalContent = ({ info, onClose }: ModalContentProps) => {
   const { lecutreId } = useParams();
   const [code, setCode] = useState<string>("");
+  const { timeLeft, isActive } = useCountdown(info.endTime ?? "00:00");
 
   const attendanceData = {
     rowNumber: info.row,
@@ -61,12 +63,15 @@ const StudentModalContent = ({ info, onClose }: ModalContentProps) => {
       <Form onSubmit={onSubmit}>
         <CodeInput
           type="text"
-          placeholder="코드 입력"
+          placeholder={isActive ? "코드 입력" : "입력이 불가능합니다."}
           value={code}
           onChange={inputChangeHandler}
+          disabled={!isActive}
         />
-        <EndTime>01:29</EndTime>
-        <Button type="submit">확인</Button>
+        <EndTime>{timeLeft}</EndTime>
+        <Button type="submit" disabled={!isActive}>
+          {isActive ? "확인" : "시간 만료"}
+        </Button>
       </Form>
     </Wrapper>
   );
