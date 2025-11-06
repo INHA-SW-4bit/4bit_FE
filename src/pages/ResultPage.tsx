@@ -4,10 +4,14 @@ import { css } from "@emotion/react";
 import { useParams } from "react-router-dom";
 import fetchWithAuth from "../utils/fetchWithAuth";
 
+import { useAttendanceData } from "../hooks/useAttendanceData";
+import SeatLayout from "../components/common/SeatLayout";
+import { useAuth } from "../contexts/AuthContext";
+
 const PageContainer = styled.div`
   min-height: 100vh;
   background-color: #f9fafb;
-  padding: 2.5rem 2rem;
+  padding-top: 2.5rem;
 `;
 
 const PageTitle = styled.h1`
@@ -20,6 +24,7 @@ const PageTitle = styled.h1`
 const TabContainer = styled.div`
   display: flex;
   gap: 0.5rem;
+  margin-top: 3rem;
   margin-bottom: 1rem;
   border-bottom: 1px solid #d1d5db;
 `;
@@ -249,6 +254,7 @@ const toGradeNumber = (g: string) => {
 
 export default function ResultPage() {
   const { lectureId } = useParams<{ lectureId: string }>();
+  const { role } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"attend" | "absent">("absent");
   const [currentPage, setCurrentPage] = useState(1);
@@ -336,10 +342,23 @@ export default function ResultPage() {
   const startIdx = (currentPage - 1) * itemsPerPage;
   const endIdx = startIdx + itemsPerPage;
   const currentData = data.slice(startIdx, endIdx);
+  const { layout, attendanceData, isLoading } = useAttendanceData();
+
+  if (isLoading) return <></>;
+  if (role === "STUDENT")
+    return (
+      <div style={{ marginTop: "1rem", color: "#333" }}>
+        접근 권한이 없습니다.
+      </div>
+    );
 
   return (
     <PageContainer>
       <PageTitle>출석 결과</PageTitle>
+
+      <SeatLayout
+        seatingStatus={{ layout: layout, attendanceData: attendanceData }}
+      />
 
       <TabContainer>
         <TabButton

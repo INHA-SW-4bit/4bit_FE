@@ -5,6 +5,8 @@ import fetchWithAuth from "../utils/fetchWithAuth";
 import profile from "../assets/images/professor_profile.png";
 import settingImg from "../assets/images/setting.png";
 
+import HeaderAndLnb from "../components/lectureListPage/HeaderAndLnb";
+
 type Lecture = {
   lectureId: number;
   lectureName: string;
@@ -48,11 +50,12 @@ export default function LectureListPage() {
   }, []);
 
   const goAttendance = (id: number) => {
-    navigate(`/${id}/attendance/professor`);
+    navigate(`/${id}/attendance`);
   };
 
   return (
     <PageWrapper>
+      <HeaderAndLnb />
       <InnerContainer>
         <HeaderWrapper>
           <TitleText>교과 과정</TitleText>
@@ -110,8 +113,6 @@ const PageWrapper = styled.div`
   width: 100%;
   min-height: 100vh;
   background: #f4f6f7;
-  display: flex;
-  justify-content: center;
   padding: 40px 0;
 `;
 const InnerContainer = styled.div`
@@ -121,6 +122,8 @@ const InnerContainer = styled.div`
   border: none;
   background: transparent;
   box-shadow: none;
+  margin-top: 1rem;
+  margin-left: 3.7rem;
 `;
 
 const HeaderWrapper = styled.header`

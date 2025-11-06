@@ -61,7 +61,6 @@ const StudentAttendancePage = () => {
 
         const data: SessionStatus = await response.json();
         setSessionStatus(data);
-        console.log("세션", data);
       } catch (error) {
         console.error("Get Failed: ", error);
         throw error;

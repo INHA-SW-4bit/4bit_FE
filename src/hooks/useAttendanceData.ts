@@ -28,7 +28,6 @@ export const useAttendanceData = () => {
 
         const data: SeatingStatus = await response.json();
         setLayout(data.layout);
-        console.log("attendanceDataFetch", data.attendanceData);
         setAttendanceData(data.attendanceData);
       } catch (error) {
         console.error("Get Failed: ", error);
