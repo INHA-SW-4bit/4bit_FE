@@ -83,10 +83,7 @@ const SeatLayout = ({
                           student: student,
                           seatNumber: curSeatNum,
                         });
-                    } else if (
-                      role === "STUDENT" /*&& connected*/ &&
-                      !isActive
-                    ) {
+                    } else if (role === "STUDENT" && connected && !isActive) {
                       clickHandler = () =>
                         openModal({
                           row: rowIdx,
