@@ -9,6 +9,7 @@ export interface Student {
   grade: number;
   profileImageUrl: string;
   department: string;
+  englishName: string;
 }
 
 export interface AttendanceData {
