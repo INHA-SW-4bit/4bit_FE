@@ -76,13 +76,13 @@ const StudentAttendancePage = () => {
         출석 기간이 아닙니다.
       </div>
     );
-  // if (success) {
-  //   return (
-  //     <div style={{ marginTop: "1rem", color: "#333" }}>
-  //       출석이 완료되었습니다.
-  //     </div>
-  //   );
-  // }
+  if (sessionStatus.attendanceStatus === "ATTENDED") {
+    return (
+      <div style={{ marginTop: "1rem", color: "#333" }}>
+        출석이 완료되었습니다.
+      </div>
+    );
+  }
 
   return (
     <ContentWrap>
