@@ -6,7 +6,6 @@ import fetchWithAuth from "../utils/fetchWithAuth";
 export default function ProfessorAttendancePage() {
   const { lectureId } = useParams<{ lectureId: string }>();
   const [minute, setMinute] = useState("0");
-  const [seconds, setSeconds] = useState("0");
   const navigate = useNavigate();
 
   const [code, setCode] = useState("");
@@ -14,25 +13,25 @@ export default function ProfessorAttendancePage() {
 
   const isEndingRef = useRef(false);
 
-  //출석코드 생성 (CodeCreateRequestDto)
+  // 출석코드 생성
   const handleGenerateCode = async () => {
     if (!lectureId) {
       alert("lectureId가 없습니다. 강의 페이지에서 다시 시도해주세요.");
       return;
     }
-    if (!minute && !seconds) {
+    if (!minute) {
       alert("시간을 입력해주세요.");
       return;
     }
 
-    const totalSeconds = Number(minute) * 60 + Number(seconds);
+    const totalSeconds = Number(minute) * 60;
     if (totalSeconds <= 0) {
-      alert("시간은 1초 이상이어야 합니다.");
+      alert("시간은 1분 이상이어야 합니다.");
       return;
     }
 
-    // 초 → 분 단위로 변환 (올림)
-    const durationMinutes = Math.ceil(totalSeconds / 60);
+    // 분 단위 그대로 서버에 전송
+    const durationMinutes = Number(minute);
 
     try {
       const response = await fetchWithAuth(
@@ -63,7 +62,7 @@ export default function ProfessorAttendancePage() {
     }
   };
 
-  //출석 종료
+  // 출석 종료
   const handleStopAutoAttendance = async () => {
     if (!lectureId) return;
     try {
@@ -94,7 +93,7 @@ export default function ProfessorAttendancePage() {
     }
   };
 
-  //타이머
+  // 타이머
   useEffect(() => {
     if (timeLeft === null) return;
     if (timeLeft <= 0) return;
@@ -106,7 +105,7 @@ export default function ProfessorAttendancePage() {
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  //자동 종료
+  // 자동 종료
   useEffect(() => {
     if (timeLeft === 0) {
       (async () => {
@@ -170,15 +169,6 @@ export default function ProfessorAttendancePage() {
               onChange={(e) => setMinute(e.target.value)}
             />
             <span className="font-semibold">분</span>
-            <TimeInput
-              id="seconds"
-              type="number"
-              min="0"
-              max="59"
-              value={seconds}
-              onChange={(e) => setSeconds(e.target.value)}
-            />
-            <span className="font-semibold">초</span>
           </InputGroup>
         )}
 
