@@ -54,6 +54,7 @@ const MainTitle = styled.span`
   display: block;
   font-size: 72px;
   line-height: 1;
+  font-weight: 900;
 `;
 
 const SubTitle = styled.span`
@@ -61,6 +62,7 @@ const SubTitle = styled.span`
   font-size: 70px;
   margin-top: 0.5rem;
   line-height: 1;
+  font-weight: 900;
 `;
 
 const LoginForm = styled.form`
@@ -98,14 +100,15 @@ const InputField = styled.input`
 
 const LoginButton = styled.button`
   display: block;
-  width: 11rem;
+  width: 13rem;
   margin-left: auto;
   margin-right: auto;
+  margin-top: 2rem;
   border-radius: 1rem;
   background-color: #325694;
   color: white;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
   font-weight: 500;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   transition: all 0.2s;
