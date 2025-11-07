@@ -8,6 +8,8 @@ import { useAttendanceData } from "../hooks/useAttendanceData";
 import SeatLayout from "../components/common/SeatLayout";
 import { useAuth } from "../contexts/AuthContext";
 
+import type { SeatingStatus } from "../types/seat";
+
 const PageContainer = styled.div`
   min-height: 100vh;
   background-color: #f9fafb;
@@ -157,6 +159,7 @@ const BasePaginationButton = styled.button`
 
 const PageButton = styled(BasePaginationButton)<{ isCurrent: boolean }>`
   border-radius: 0;
+  margin-bottom: 5rem;
 
   ${(props) =>
     props.isCurrent
@@ -190,6 +193,7 @@ const NavButton = styled(BasePaginationButton)<{ isDisabled: boolean }>`
             background-color: #f3f4f6;
           }
         `}
+  margin-bottom: 5rem;
 
   &:first-of-type {
     border-top-left-radius: 0.25rem;
@@ -201,28 +205,6 @@ const NavButton = styled(BasePaginationButton)<{ isDisabled: boolean }>`
     border-bottom-right-radius: 0.25rem;
   }
 `;
-
-//타입&유틸 (표시형 변환만)
-type Seat = { row: number; col: number };
-
-type SeatStudentDetailDto = {
-  id?: string;
-  name: string;
-  grade: string;
-  studentId: string;
-  department: string;
-  profileImgUrl?: string;
-};
-
-type ApiAttendanceItem = {
-  seat: Seat;
-  student?: SeatStudentDetailDto;
-};
-
-type SeatingStatusResponse = {
-  layout: ("seat" | "aisle" | "X")[][];
-  attendanceData: ApiAttendanceItem[];
-};
 
 //출석자 dto
 type RowShape = {
@@ -245,12 +227,6 @@ type AbsenteeDto = {
 //"12223757"->"1222****"
 const maskStudentId = (id: string) =>
   id && id.length >= 4 ? `${id.slice(0, 4)}****` : id;
-
-//"4학년" -> 4
-const toGradeNumber = (g: string) => {
-  const n = parseInt(g.replace(/\D/g, ""), 10);
-  return Number.isNaN(n) ? 0 : n;
-};
 
 export default function ResultPage() {
   const { lectureId } = useParams<{ lectureId: string }>();
@@ -282,13 +258,13 @@ export default function ResultPage() {
         setErrorMsg(null);
 
         const res = await fetchWithAuth(
-          `/api/lectures/${lectureId}/seating-status`,
+          `/api/lectures/${lectureId}/attendance/status`,
           { method: "GET", headers: { "Content-Type": "application/json" } }
         );
 
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-        const data: SeatingStatusResponse = await res.json();
+        const data: SeatingStatus = await res.json();
 
         //출석자: attendanceData 중 student가 존재하는 항목만 표시형으로 변환
         const present: RowShape[] = (data.attendanceData || [])
@@ -297,10 +273,10 @@ export default function ResultPage() {
             const s = a.student!;
             return {
               major: s.department || "",
-              grade: toGradeNumber(s.grade || ""),
+              grade: s.grade || 0,
               studentNo: maskStudentId(s.studentId || ""),
               name: s.name || "",
-              engName: "", //영문명은 백엔드 스펙에 없으므로 일단 비워둠
+              engName: s.englishName || "",
             };
           });
 
